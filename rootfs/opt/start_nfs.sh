@@ -16,6 +16,11 @@ set -e
 
 : ${GANESHA_CONFIG:="/etc/ganesha/ganesha.conf"}
 : ${GANESHA_LOGFILE:="/dev/stdout"}
+: ${CEPH_MONITORS:=""}
+: ${CEPH_USER_ID:=""}
+: ${CEPH_SECRET_ACCESS_KEY:=""}
+: ${CEPH_CLIENT_MOUNT_UID:="0"}
+: ${CEPH_CLIENT_MOUNT_GID:="0"}
 
 init_rpc() {
     echo "* Starting rpcbind"
@@ -52,25 +57,69 @@ bootstrap_config() {
     echo "* Writing configuration"
     cat <<END >${GANESHA_CONFIG}
 
-NFSV4 { Graceless = ${GRACELESS}; }
-EXPORT{
-    Export_Id = ${EXPORT_ID};
-    Path = "${EXPORT_PATH}";
-    Pseudo = "${PSEUDO_PATH}";
-    FSAL {
-        name = VFS;
-    }
-    Access_type = RW;
-    Disable_ACL = true;
-    Squash = ${SQUASH_MODE};
-    Protocols = ${PROTOCOLS};
+NFS_CORE_PARAM
+{
+    Enable_NLM = false;
+    Enable_RQUOTA = false;
 }
 
-EXPORT_DEFAULTS{
+NFSv4
+{
+    Graceless = ${GRACELESS};
+    Minor_Versions =  1,2;
+}
+
+MDCACHE
+{
+    Dir_Chunk = 0;
+    NParts = 1;
+    Cache_Size = 1;
+}
+
+EXPORT
+{
+    Export_Id = ${EXPORT_ID};
+    Protocols = ${PROTOCOLS};
+    Path = "${EXPORT_PATH}";
+    Pseudo = "${PSEUDO_PATH}";
+    Access_type = RW;
+    Attr_Expiration_Time = 0;
+    Disable_ACL = true;
+    Squash = ${SQUASH_MODE};
+    FSAL
+    {
+        Name = CEPH;
+        User_Id = "${CEPH_USER_ID}";
+        Secret_Access_Key = "${CEPH_SECRET_ACCESS_KEY}";
+    }
+}
+
+EXPORT_DEFAULTS
+{
     Transports = ${TRANSPORTS};
     SecType = ${SEC_TYPE};
 }
 
+CEPH
+{
+    Ceph_Conf = /ceph.conf;
+}
+
+RADOS_KV
+{
+}
+
+RADOS_URLS
+{
+}
+
+END
+
+    cat <<END >/ceph.conf
+[client.ganesha]
+client mount uid = ${CEPH_CLIENT_MOUNT_UID}
+client mount gid = ${CEPH_CLIENT_MOUNT_GID}
+mon host = ${CEPH_MONITORS}
 END
 }
 

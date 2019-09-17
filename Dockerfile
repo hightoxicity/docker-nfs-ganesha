@@ -1,12 +1,12 @@
-FROM centos:7
+FROM centos:7.6.1810
 MAINTAINER jan@rancher.com
 
-# Install dependencies
-RUN yum install -y epel-release.noarch centos-release-gluster37.noarch && \
+RUN yum install -y epel-release.noarch centos-release-ceph-nautilus-1.2-2.el7.centos.noarch && \
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 && \
+    rpm --import 'https://download.ceph.com/keys/release.asc' && \
     rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Storage && \
     yum -y install \
-    nfs-ganesha nfs-ganesha-xfs nfs-ganesha-vfs \
+    nfs-ganesha nfs-ganesha-ceph nfs-ganesha-rgw \
     nfs-utils rpcbind dbus && \
     # Clean cache
     yum -y clean all
