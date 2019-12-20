@@ -1,4 +1,4 @@
-FROM centos:7.6.1810
+FROM centos:7.7.1908
 MAINTAINER jan@rancher.com
 
 RUN yum install -y epel-release.noarch centos-release-ceph-nautilus-1.2-2.el7.centos.noarch && \
